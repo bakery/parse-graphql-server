@@ -1,6 +1,6 @@
 const buildOptions = (options, sessionToken) => Object.assign(options || {}, { sessionToken });
 
-export function create(ParseObject, sessionToken = '', currentUser = null) {
+export function create(ParseObject, sessionToken = '') {
   const looksLikeLegitParseObject = ParseObject &&
     typeof ParseObject === 'function' && ParseObject.className;
 
@@ -8,7 +8,7 @@ export function create(ParseObject, sessionToken = '', currentUser = null) {
     throw new Error('create requires a class based on Parse.Object');
   }
 
-  if (!sessionToken || !currentUser) {
+  if (!sessionToken) {
     return ParseObject;
   }
 

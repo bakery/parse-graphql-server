@@ -3,7 +3,6 @@ import Parse from 'parse/node';
 
 let MyParseObject = Parse.Object.extend('MyParseObject');
 const sessionToken = 'session-token';
-const currentUser = {};
 
 describe('Server models', () => {
   it('exports create method', () => {
@@ -26,7 +25,7 @@ describe('Server models', () => {
     });
 
     it('returns a subclass of Parse.Object when given authentication info', () => {
-      const ParseObject = create(MyParseObject, sessionToken, currentUser);
+      const ParseObject = create(MyParseObject, sessionToken);
       expect(ParseObject).to.be.ok;
       expect(ParseObject.className).to.equal('MyParseObject');
     });
@@ -57,7 +56,7 @@ describe('Server models', () => {
         destroyAll: destroyAllSpy,
         fetch: fetchSpy,
       });
-      const ParseObject = create(MyParseObject, sessionToken, currentUser);
+      const ParseObject = create(MyParseObject, sessionToken);
       po = new ParseObject();
     });
 
