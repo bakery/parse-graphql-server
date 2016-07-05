@@ -24,13 +24,14 @@ export function setup({ schema, graphiql = false }) {
     }
 
     const q = new Parse.Query(Parse.Session).equalTo('sessionToken', sessionToken);
-    return q.first({ useMasterKey: true }).then(
-      () => Object.assign(baseOps, {
-        context: {
+    return q.first({ useMasterKey: true }).then(session => session && session.get('user').fetch())
+      .then(user => {
+        const context = {
           Query: createQuery(sessionToken),
           sessionToken,
-        },
-      })
-    );
+          user,
+        };
+        return Object.assign(baseOps, { context });
+      });
   });
 }

@@ -31,7 +31,17 @@ describe('Express middleware', () => {
     }).setup;
 
     queryEqualToSpy = spy(Parse.Query.prototype, 'equalTo');
-    queryFirstStub = stub(Parse.Query.prototype, 'first', () => Promise.resolve({}));
+    queryFirstStub = stub(Parse.Query.prototype, 'first', () => {
+      const fakeSession = {
+        get: () => (
+          {
+            fetch: () => 'user',
+          }
+        ),
+      };
+
+      return Promise.resolve(fakeSession);
+    });
   });
 
   it('exports setup function', () => {
@@ -96,9 +106,6 @@ describe('Express middleware', () => {
   });
 
   it('returns extended context if token lookup succeeds + uses patched query generator', (done) => {
-    Parse.Query.prototype.first.restore();
-    queryFirstStub = stub(Parse.Query.prototype, 'first', () => Promise.resolve({}));
-
     const cb = setup({ schema });
     const r = cb({
       headers: {
@@ -110,6 +117,7 @@ describe('Express middleware', () => {
       expect(createQuerySpy).to.have.been.calledOnce;
       expect(createQuerySpy).to.have.been.calledWith(sessionToken);
       expect(options.context.Query).to.equal('authorized query');
+      expect(options.context.user).to.equal('user');
       expect(options.context.sessionToken).to.equal(sessionToken);
       done();
     });
