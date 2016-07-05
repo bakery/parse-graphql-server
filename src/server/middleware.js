@@ -1,10 +1,9 @@
-import { GraphQLSchema } from 'graphql';
 import graphqlHTTP from 'express-graphql';
 import Parse from 'parse/node';
 import { create as createQuery } from './lib/query';
 
 export function setup({ schema, graphiql = false }) {
-  const isSchemaLegit = schema instanceof GraphQLSchema;
+  const isSchemaLegit = typeof schema === 'object';
 
   if (!isSchemaLegit) {
     throw new Error('Invalid schema');

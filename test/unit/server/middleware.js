@@ -1,20 +1,9 @@
 import proxyquire from 'proxyquire';
-import { GraphQLSchema, GraphQLObjectType, GraphQLString } from 'graphql';
 import Parse from 'parse/node';
 
 let setup;
 const sessionToken = 'session-token';
-const schema = new GraphQLSchema({
-  query: new GraphQLObjectType({
-    name: 'Query',
-    fields: {
-      f1: {
-        type: GraphQLString,
-        resolve: () => 'hello',
-      },
-    },
-  }),
-});
+const schema = {};
 
 describe('Express middleware', () => {
   let graphqlHTTPSpy;
@@ -43,10 +32,6 @@ describe('Express middleware', () => {
 
     queryEqualToSpy = spy(Parse.Query.prototype, 'equalTo');
     queryFirstStub = stub(Parse.Query.prototype, 'first', () => Promise.resolve({}));
-  });
-
-  afterEach(() => {
-
   });
 
   it('exports setup function', () => {
