@@ -51,9 +51,13 @@ describe('Server models', () => {
   });
 
   describe('create', () => {
-    it('returns standard Parse.Query if session token is not specified', () => {
+    it('returns a transformed Parse.Query with create method if no session token is given', () => {
       const q = create();
-      expect(q).to.equal(Parse.Query);
+      expect(q).to.respondTo('create');
+      expect(q).to.respondTo('find');
+      expect(q).to.respondTo('count');
+      expect(q).to.respondTo('first');
+      expect(q).to.respondTo('get');
     });
 
     it('returns extended Parse.Query when session token is provided', () => {

@@ -5,7 +5,18 @@ const buildOptions = (options, sessionToken) => Object.assign(options || {}, { s
 
 export function create(sessionToken) {
   if (!sessionToken) {
-    return Parse.Query;
+    class BasicQuery extends Parse.Query {
+      constructor(objectClass) {
+        super(objectClass);
+        this.ObjectClass = objectClass;
+      }
+
+      create(attributes = {}) {
+        return new this.ObjectClass(attributes);
+      }
+    }
+
+    return BasicQuery;
   }
 
   class Query extends Parse.Query {
