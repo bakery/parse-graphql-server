@@ -15,7 +15,7 @@ export function setup({ schema, graphiql = false }) {
       schema,
       graphiql,
       context: {
-        Query: Parse.Query,
+        Query: createQuery(null),
       },
     };
 

@@ -25,7 +25,7 @@ describe('Express middleware', () => {
       './lib/query': {
         create(token) {
           createQuerySpy(token);
-          return 'authorized query';
+          return token ? 'authorized query' : 'simple query';
         },
       },
     }).setup;
@@ -72,7 +72,9 @@ describe('Express middleware', () => {
 
       expect(r.schema).to.equal(schema);
       expect(r.graphiql).to.equal(graphiql);
-      expect(r.context.Query).to.equal(Parse.Query);
+      expect(r.context.Query).to.equal('simple query');
+      expect(createQuerySpy).to.have.been.calledOnce;
+      expect(createQuerySpy).to.have.been.calledWith(null);
     });
   });
 
@@ -114,8 +116,9 @@ describe('Express middleware', () => {
     });
 
     r.then((options) => {
-      expect(createQuerySpy).to.have.been.calledOnce;
-      expect(createQuerySpy).to.have.been.calledWith(sessionToken);
+      expect(createQuerySpy).to.have.been.calledTwice;
+      expect(createQuerySpy.getCall(0).args[0]).to.equal(null);
+      expect(createQuerySpy.getCall(1).args[0]).to.equal(sessionToken);
       expect(options.context.Query).to.equal('authorized query');
       expect(options.context.user).to.equal('user');
       expect(options.context.sessionToken).to.equal(sessionToken);
