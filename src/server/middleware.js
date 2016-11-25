@@ -1,19 +1,20 @@
-import graphqlHTTP from 'express-graphql';
+/* eslint arrow-parens: off, arrow-body-style: off, import/prefer-default-export: off */
+
+import { graphqlExpress } from 'graphql-server-express';
 import Parse from 'parse/node';
 import { create as createQuery } from './lib/query';
 
-export function setup({ schema, graphiql = false }) {
+export function setup({ schema }) {
   const isSchemaLegit = typeof schema === 'object';
 
   if (!isSchemaLegit) {
     throw new Error('Invalid schema');
   }
 
-  return graphqlHTTP(request => {
+  return graphqlExpress(request => {
     const sessionToken = request.headers && request.headers.authorization;
     const baseOps = {
       schema,
-      graphiql,
       context: {
         Query: createQuery(null),
       },
@@ -24,14 +25,15 @@ export function setup({ schema, graphiql = false }) {
     }
 
     const q = new Parse.Query(Parse.Session).equalTo('sessionToken', sessionToken);
-    return q.first({ useMasterKey: true }).then(session => session && session.get('user').fetch())
-      .then(user => {
-        const context = {
+
+    return q.first({ useMasterKey: true }).then(session => session && session.get('user').fetch()).then(user => {
+      return Object.assign(baseOps, {
+        context: {
           Query: createQuery(sessionToken),
           sessionToken,
           user,
-        };
-        return Object.assign(baseOps, { context });
+        },
       });
+    });
   });
 }

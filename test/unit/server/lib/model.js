@@ -1,5 +1,5 @@
-import { create } from '../../../../src/server/lib/model';
 import Parse from 'parse/node';
+import { create } from '../../../../src/server/lib/model';
 
 let MyParseObject = Parse.Object.extend('MyParseObject');
 const sessionToken = 'session-token';
