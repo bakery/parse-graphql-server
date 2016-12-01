@@ -17,9 +17,11 @@ describe('Express middleware', () => {
     createQuerySpy = spy();
 
     setup = proxyquire('../../../src/server/middleware', {
-      'express-graphql': (callback) => {
-        graphqlHTTPSpy(callback);
-        return callback;
+      'graphql-server-express': {
+        graphqlExpress: (callback) => {
+          graphqlHTTPSpy(callback);
+          return callback;
+        },
       },
 
       './lib/query': {
@@ -66,12 +68,10 @@ describe('Express middleware', () => {
 
   describe('middleware function', () => {
     it('returns basic options if request has no authorization header', () => {
-      const graphiql = true;
-      const cb = setup({ schema, graphiql });
+      const cb = setup({ schema });
       const r = cb({});
 
       expect(r.schema).to.equal(schema);
-      expect(r.graphiql).to.equal(graphiql);
       expect(r.context.Query).to.equal('simple query');
       expect(createQuerySpy).to.have.been.calledOnce;
       expect(createQuerySpy).to.have.been.calledWith(null);
@@ -79,8 +79,7 @@ describe('Express middleware', () => {
   });
 
   it('looks for a session based on session token in authorization header', () => {
-    const graphiql = true;
-    const cb = setup({ schema, graphiql });
+    const cb = setup({ schema });
     cb({
       headers: {
         authorization: sessionToken,
