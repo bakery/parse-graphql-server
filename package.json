@@ -1,6 +1,6 @@
 {
   "name": "parse-graphql-server",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "GraphQL server for Parse",
   "main": "dist/parse-graphql.js",
   "scripts": {
@@ -55,7 +55,7 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "dependencies": {
-    "graphql": "^0.7.0",
+    "graphql": "^0.8.2",
     "graphql-server-express": "^0.4.3",
     "parse": "^1.8.5"
   }
