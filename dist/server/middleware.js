@@ -20,10 +20,12 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function buildAdditionalContext(baseContext, additionalContextFactory) {
   if (!additionalContextFactory) {
-    return {};
+    return _node2.default.Promise.as({});
   }
 
-  return typeof additionalContextFactory === 'function' ? additionalContextFactory(baseContext) : additionalContextFactory;
+  var r = typeof additionalContextFactory === 'function' ? additionalContextFactory(baseContext) : additionalContextFactory;
+
+  return r && typeof r.then === 'function' ? r : _node2.default.Promise.as(r);
 }
 
 function setup(_ref) {
@@ -39,13 +41,14 @@ function setup(_ref) {
   return (0, _graphqlServerExpress.graphqlExpress)(function (request) {
     var sessionToken = request.headers && request.headers.authorization;
     var baseContext = { Query: (0, _query.create)(null) };
-    var baseOps = {
-      schema: schema,
-      context: Object.assign({}, baseContext, buildAdditionalContext(baseContext, context))
-    };
+    var baseOps = { schema: schema };
 
     if (!sessionToken) {
-      return baseOps;
+      return buildAdditionalContext(baseContext, context).then(function (additionalContext) {
+        return Object.assign({}, baseOps, {
+          context: Object.assign({}, baseContext, additionalContext)
+        });
+      });
     }
 
     var q = new _node2.default.Query(_node2.default.Session).equalTo('sessionToken', sessionToken);
@@ -58,8 +61,11 @@ function setup(_ref) {
         sessionToken: sessionToken,
         user: user
       };
-      return Object.assign(baseOps, {
-        context: Object.assign({}, baseContext, buildAdditionalContext(baseContext, context))
+
+      return buildAdditionalContext(baseContext, context).then(function (additionalContext) {
+        return Object.assign(baseOps, {
+          context: Object.assign({}, baseContext, additionalContext)
+        });
       });
     });
   });

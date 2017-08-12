@@ -66,15 +66,18 @@ describe('Express middleware', () => {
     });
   });
 
-  describe('middleware function', () => {
+  describe('middleware function', (done) => {
     it('returns basic options if request has no authorization header', () => {
       const cb = setup({ schema });
       const r = cb({});
 
-      expect(r.schema).to.equal(schema);
-      expect(r.context.Query).to.equal('simple query');
-      expect(createQuerySpy).to.have.been.calledOnce;
-      expect(createQuerySpy).to.have.been.calledWith(null);
+      r.then((options) => {
+        expect(options.schema).to.equal(schema);
+        expect(options.context.Query).to.equal('simple query');
+        expect(createQuerySpy).to.have.been.calledOnce;
+        expect(createQuerySpy).to.have.been.calledWith(null);
+        done();
+      });
     });
   });
 

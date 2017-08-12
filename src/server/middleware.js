@@ -6,11 +6,13 @@ import { create as createQuery } from './lib/query';
 
 function buildAdditionalContext(baseContext, additionalContextFactory) {
   if (!additionalContextFactory) {
-    return {};
+    return Parse.Promise.as({});
   }
 
-  return (typeof additionalContextFactory) === 'function' ? additionalContextFactory(baseContext) :
+  const r = (typeof additionalContextFactory) === 'function' ? additionalContextFactory(baseContext) :
     additionalContextFactory;
+
+  return r && (typeof r.then === 'function') ? r : Parse.Promise.as(r);
 }
 
 export function setup({ schema, context }) {
@@ -23,13 +25,14 @@ export function setup({ schema, context }) {
   return graphqlExpress(request => {
     const sessionToken = request.headers && request.headers.authorization;
     let baseContext = { Query: createQuery(null) };
-    const baseOps = {
-      schema,
-      context: Object.assign({}, baseContext, buildAdditionalContext(baseContext, context)),
-    };
+    const baseOps = { schema };
 
     if (!sessionToken) {
-      return baseOps;
+      return buildAdditionalContext(baseContext, context).then(additionalContext => {
+        return Object.assign({}, baseOps, {
+          context: Object.assign({}, baseContext, additionalContext),
+        });
+      });
     }
 
     const q = new Parse.Query(Parse.Session).equalTo('sessionToken', sessionToken);
@@ -40,8 +43,11 @@ export function setup({ schema, context }) {
         sessionToken,
         user,
       };
-      return Object.assign(baseOps, {
-        context: Object.assign({}, baseContext, buildAdditionalContext(baseContext, context)),
+
+      return buildAdditionalContext(baseContext, context).then(additionalContext => {
+        return Object.assign(baseOps, {
+          context: Object.assign({}, baseContext, additionalContext),
+        });
       });
     });
   });
