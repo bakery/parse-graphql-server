@@ -18,8 +18,17 @@ var _query = require('./lib/query');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function buildAdditionalContext(baseContext, additionalContextFactory) {
+  if (!additionalContextFactory) {
+    return {};
+  }
+
+  return typeof additionalContextFactory === 'function' ? additionalContextFactory(baseContext) : additionalContextFactory;
+}
+
 function setup(_ref) {
-  var schema = _ref.schema;
+  var schema = _ref.schema,
+      context = _ref.context;
 
   var isSchemaLegit = (typeof schema === 'undefined' ? 'undefined' : _typeof(schema)) === 'object';
 
@@ -29,11 +38,10 @@ function setup(_ref) {
 
   return (0, _graphqlServerExpress.graphqlExpress)(function (request) {
     var sessionToken = request.headers && request.headers.authorization;
+    var baseContext = { Query: (0, _query.create)(null) };
     var baseOps = {
       schema: schema,
-      context: {
-        Query: (0, _query.create)(null)
-      }
+      context: Object.assign({}, baseContext, buildAdditionalContext(baseContext, context))
     };
 
     if (!sessionToken) {
@@ -45,12 +53,13 @@ function setup(_ref) {
     return q.first({ useMasterKey: true }).then(function (session) {
       return session && session.get('user').fetch();
     }).then(function (user) {
+      baseContext = {
+        Query: (0, _query.create)(sessionToken),
+        sessionToken: sessionToken,
+        user: user
+      };
       return Object.assign(baseOps, {
-        context: {
-          Query: (0, _query.create)(sessionToken),
-          sessionToken: sessionToken,
-          user: user
-        }
+        context: Object.assign({}, baseContext, buildAdditionalContext(baseContext, context))
       });
     });
   });
