@@ -4,7 +4,16 @@ import { graphqlExpress } from 'graphql-server-express';
 import Parse from 'parse/node';
 import { create as createQuery } from './lib/query';
 
-export function setup({ schema }) {
+function buildAdditionalContext(baseContext, additionalContextFactory) {
+  if (!additionalContextFactory) {
+    return {};
+  }
+
+  return (typeof additionalContextFactory) === 'function' ? additionalContextFactory(baseContext) :
+    additionalContextFactory;
+}
+
+export function setup({ schema, context }) {
   const isSchemaLegit = typeof schema === 'object';
 
   if (!isSchemaLegit) {
@@ -13,11 +22,10 @@ export function setup({ schema }) {
 
   return graphqlExpress(request => {
     const sessionToken = request.headers && request.headers.authorization;
+    let baseContext = { Query: createQuery(null) };
     const baseOps = {
       schema,
-      context: {
-        Query: createQuery(null),
-      },
+      context: Object.assign({}, baseContext, buildAdditionalContext(baseContext, context)),
     };
 
     if (!sessionToken) {
@@ -27,12 +35,13 @@ export function setup({ schema }) {
     const q = new Parse.Query(Parse.Session).equalTo('sessionToken', sessionToken);
 
     return q.first({ useMasterKey: true }).then(session => session && session.get('user').fetch()).then(user => {
+      baseContext = {
+        Query: createQuery(sessionToken),
+        sessionToken,
+        user,
+      };
       return Object.assign(baseOps, {
-        context: {
-          Query: createQuery(sessionToken),
-          sessionToken,
-          user,
-        },
+        context: Object.assign({}, baseContext, buildAdditionalContext(baseContext, context)),
       });
     });
   });
