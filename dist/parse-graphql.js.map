@@ -1,0 +1,1 @@
+{"version":3,"sources":["parse-graphql.js"],"names":[],"mappings":";;;;;;AAAA","file":"parse-graphql.js","sourcesContent":["import { setup as parseGraphQLHTTP } from './server/middleware';\n\nexport default parseGraphQLHTTP;\n"]}

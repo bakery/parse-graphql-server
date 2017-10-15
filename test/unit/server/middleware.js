@@ -17,9 +17,11 @@ describe('Express middleware', () => {
     createQuerySpy = spy();
 
     setup = proxyquire('../../../src/server/middleware', {
-      'express-graphql': (callback) => {
-        graphqlHTTPSpy(callback);
-        return callback;
+      'graphql-server-express': {
+        graphqlExpress: (callback) => {
+          graphqlHTTPSpy(callback);
+          return callback;
+        },
       },
 
       './lib/query': {
@@ -64,23 +66,23 @@ describe('Express middleware', () => {
     });
   });
 
-  describe('middleware function', () => {
+  describe('middleware function', (done) => {
     it('returns basic options if request has no authorization header', () => {
-      const graphiql = true;
-      const cb = setup({ schema, graphiql });
+      const cb = setup({ schema });
       const r = cb({});
 
-      expect(r.schema).to.equal(schema);
-      expect(r.graphiql).to.equal(graphiql);
-      expect(r.context.Query).to.equal('simple query');
-      expect(createQuerySpy).to.have.been.calledOnce;
-      expect(createQuerySpy).to.have.been.calledWith(null);
+      r.then((options) => {
+        expect(options.schema).to.equal(schema);
+        expect(options.context.Query).to.equal('simple query');
+        expect(createQuerySpy).to.have.been.calledOnce;
+        expect(createQuerySpy).to.have.been.calledWith(null);
+        done();
+      });
     });
   });
 
   it('looks for a session based on session token in authorization header', () => {
-    const graphiql = true;
-    const cb = setup({ schema, graphiql });
+    const cb = setup({ schema });
     cb({
       headers: {
         authorization: sessionToken,
@@ -122,6 +124,55 @@ describe('Express middleware', () => {
       expect(options.context.Query).to.equal('authorized query');
       expect(options.context.user).to.equal('user');
       expect(options.context.sessionToken).to.equal(sessionToken);
+      done();
+    });
+  });
+
+  it('returns additional context if it is passed along with the schema', (done) => {
+    const context = {
+      foo: 'bar',
+    };
+    const cb = setup({ schema, context });
+    const r = cb({
+      headers: {
+        authorization: sessionToken,
+      },
+    });
+
+    r.then((options) => {
+      expect(createQuerySpy).to.have.been.calledTwice;
+      expect(createQuerySpy.getCall(0).args[0]).to.equal(null);
+      expect(createQuerySpy.getCall(1).args[0]).to.equal(sessionToken);
+      expect(options.context.Query).to.equal('authorized query');
+      expect(options.context.user).to.equal('user');
+      expect(options.context.sessionToken).to.equal(sessionToken);
+      expect(options.context.foo).to.equal('bar');
+      done();
+    });
+  });
+
+  it('calls context function passed alongside schema', (done) => {
+    function context() {
+      return {
+        foo: 'bar',
+      };
+    }
+
+    const cb = setup({ schema, context });
+    const r = cb({
+      headers: {
+        authorization: sessionToken,
+      },
+    });
+
+    r.then((options) => {
+      expect(createQuerySpy).to.have.been.calledTwice;
+      expect(createQuerySpy.getCall(0).args[0]).to.equal(null);
+      expect(createQuerySpy.getCall(1).args[0]).to.equal(sessionToken);
+      expect(options.context.Query).to.equal('authorized query');
+      expect(options.context.user).to.equal('user');
+      expect(options.context.sessionToken).to.equal(sessionToken);
+      expect(options.context.foo).to.equal('bar');
       done();
     });
   });
