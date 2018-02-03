@@ -1,37 +1,54 @@
-import graphqlHTTP from 'express-graphql';
+/* eslint arrow-parens: off, arrow-body-style: off, import/prefer-default-export: off */
+
+import { graphqlExpress } from 'graphql-server-express';
 import Parse from 'parse/node';
 import { create as createQuery } from './lib/query';
 
-export function setup({ schema, graphiql = false }) {
+function buildAdditionalContext(baseContext, additionalContextFactory) {
+  if (!additionalContextFactory) {
+    return Parse.Promise.as({});
+  }
+
+  const r = (typeof additionalContextFactory) === 'function' ? additionalContextFactory(baseContext) :
+    additionalContextFactory;
+
+  return r && (typeof r.then === 'function') ? r : Parse.Promise.as(r);
+}
+
+export function setup({ schema, context }) {
   const isSchemaLegit = typeof schema === 'object';
 
   if (!isSchemaLegit) {
     throw new Error('Invalid schema');
   }
 
-  return graphqlHTTP(request => {
+  return graphqlExpress(request => {
     const sessionToken = request.headers && request.headers.authorization;
-    const baseOps = {
-      schema,
-      graphiql,
-      context: {
-        Query: createQuery(null),
-      },
-    };
+    let baseContext = { Query: createQuery(null) };
+    const baseOps = { schema };
 
     if (!sessionToken) {
-      return baseOps;
+      return buildAdditionalContext(baseContext, context).then(additionalContext => {
+        return Object.assign({}, baseOps, {
+          context: Object.assign({}, baseContext, additionalContext),
+        });
+      });
     }
 
     const q = new Parse.Query(Parse.Session).equalTo('sessionToken', sessionToken);
-    return q.first({ useMasterKey: true }).then(session => session && session.get('user').fetch())
-      .then(user => {
-        const context = {
-          Query: createQuery(sessionToken),
-          sessionToken,
-          user,
-        };
-        return Object.assign(baseOps, { context });
+
+    return q.first({ useMasterKey: true }).then(session => session && session.get('user').fetch()).then(user => {
+      baseContext = {
+        Query: createQuery(sessionToken),
+        sessionToken,
+        user,
+      };
+
+      return buildAdditionalContext(baseContext, context).then(additionalContext => {
+        return Object.assign(baseOps, {
+          context: Object.assign({}, baseContext, additionalContext),
+        });
       });
+    });
   });
 }

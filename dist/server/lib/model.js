@@ -1,10 +1,19 @@
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.create = create;
 /* eslint import/prefer-default-export: off */
 
-const buildOptions = (options, sessionToken) => Object.assign(options || {}, { sessionToken });
+var buildOptions = function buildOptions(options, sessionToken) {
+  return Object.assign(options || {}, { sessionToken: sessionToken });
+};
 
-export function create(ParseObject, sessionToken = '') {
-  const looksLikeLegitParseObject = ParseObject &&
-    typeof ParseObject === 'function' && ParseObject.className;
+function create(ParseObject) {
+  var sessionToken = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+
+  var looksLikeLegitParseObject = ParseObject && typeof ParseObject === 'function' && ParseObject.className;
 
   if (!looksLikeLegitParseObject) {
     throw new Error('create requires a class based on Parse.Object');
@@ -15,24 +24,21 @@ export function create(ParseObject, sessionToken = '') {
   }
 
   return ParseObject.extend({
-    save(target, options) {
+    save: function save(target, options) {
       return ParseObject.prototype.save.call(this, target, buildOptions(options, sessionToken));
     },
-
-    saveAll(list, options) {
+    saveAll: function saveAll(list, options) {
       return ParseObject.prototype.saveAll.call(this, list, buildOptions(options, sessionToken));
     },
-
-    destroy(options) {
+    destroy: function destroy(options) {
       return ParseObject.prototype.destroy.call(this, buildOptions(options, sessionToken));
     },
-
-    destroyAll(list, options) {
+    destroyAll: function destroyAll(list, options) {
       return ParseObject.prototype.destroyAll.call(this, list, buildOptions(options, sessionToken));
     },
-
-    fetch(options) {
+    fetch: function fetch(options) {
       return ParseObject.prototype.fetch.call(this, buildOptions(options, sessionToken));
-    },
+    }
   });
 }
+//# sourceMappingURL=model.js.map

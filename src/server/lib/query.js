@@ -1,3 +1,5 @@
+/* eslint import/prefer-default-export: off */
+
 import Parse from 'parse/node';
 import { create as createModel } from './model';
 
