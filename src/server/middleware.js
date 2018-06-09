@@ -1,6 +1,6 @@
 /* eslint arrow-parens: off, arrow-body-style: off, import/prefer-default-export: off */
 
-import { graphqlExpress } from 'graphql-server-express';
+import { graphqlExpress } from 'apollo-server-express';
 import Parse from 'parse/node';
 import { create as createQuery } from './lib/query';
 

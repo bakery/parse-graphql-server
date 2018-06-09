@@ -8,7 +8,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 exports.setup = setup;
 
-var _graphqlServerExpress = require('graphql-server-express');
+var _apolloServerExpress = require('apollo-server-express');
 
 var _node = require('parse/node');
 
@@ -38,7 +38,7 @@ function setup(_ref) {
     throw new Error('Invalid schema');
   }
 
-  return (0, _graphqlServerExpress.graphqlExpress)(function (request) {
+  return (0, _apolloServerExpress.graphqlExpress)(function (request) {
     var sessionToken = request.headers && request.headers.authorization;
     var baseContext = { Query: (0, _query.create)(null) };
     var baseOps = { schema: schema };
