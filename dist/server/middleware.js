@@ -18,12 +18,12 @@ var _query = require('./lib/query');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function buildAdditionalContext(baseContext, additionalContextFactory) {
+function buildAdditionalContext(baseContext, request, additionalContextFactory) {
   if (!additionalContextFactory) {
     return _node2.default.Promise.as({});
   }
 
-  var r = typeof additionalContextFactory === 'function' ? additionalContextFactory(baseContext) : additionalContextFactory;
+  var r = typeof additionalContextFactory === 'function' ? additionalContextFactory(baseContext, request) : additionalContextFactory;
 
   return r && typeof r.then === 'function' ? r : _node2.default.Promise.as(r);
 }
@@ -44,7 +44,7 @@ function setup(_ref) {
     var baseOps = { schema: schema };
 
     if (!sessionToken) {
-      return buildAdditionalContext(baseContext, context).then(function (additionalContext) {
+      return buildAdditionalContext(baseContext, request, context).then(function (additionalContext) {
         return Object.assign({}, baseOps, {
           context: Object.assign({}, baseContext, additionalContext)
         });
@@ -62,7 +62,7 @@ function setup(_ref) {
         user: user
       };
 
-      return buildAdditionalContext(baseContext, context).then(function (additionalContext) {
+      return buildAdditionalContext(baseContext, request, context).then(function (additionalContext) {
         return Object.assign(baseOps, {
           context: Object.assign({}, baseContext, additionalContext)
         });
