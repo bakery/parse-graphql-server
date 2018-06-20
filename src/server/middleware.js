@@ -1,10 +1,9 @@
 /* eslint arrow-parens: off, arrow-body-style: off, import/prefer-default-export: off */
 
 import { graphqlExpress } from 'apollo-server-express';
-import Parse from 'parse/node';
 import { create as createQuery } from './lib/query';
 
-function buildAdditionalContext(baseContext, request, additionalContextFactory) {
+function buildAdditionalContext({ baseContext, request, additionalContextFactory, Parse }) {
   if (!additionalContextFactory) {
     return Parse.Promise.as({});
   }
@@ -15,7 +14,7 @@ function buildAdditionalContext(baseContext, request, additionalContextFactory) 
   return r && (typeof r.then === 'function') ? r : Parse.Promise.as(r);
 }
 
-export function setup({ schema, context }) {
+export function setup({ Parse, schema, context }) {
   const isSchemaLegit = typeof schema === 'object';
 
   if (!isSchemaLegit) {
@@ -28,7 +27,7 @@ export function setup({ schema, context }) {
     const baseOps = { schema };
 
     if (!sessionToken) {
-      return buildAdditionalContext(baseContext, request, context).then(additionalContext => {
+      return buildAdditionalContext({ baseContext, request, context, Parse }).then(additionalContext => {
         return Object.assign({}, baseOps, {
           context: Object.assign({}, baseContext, additionalContext),
         });
@@ -44,7 +43,7 @@ export function setup({ schema, context }) {
         user,
       };
 
-      return buildAdditionalContext(baseContext, request, context).then(additionalContext => {
+      return buildAdditionalContext({ baseContext, request, context, Parse }).then(additionalContext => {
         return Object.assign(baseOps, {
           context: Object.assign({}, baseContext, additionalContext),
         });
