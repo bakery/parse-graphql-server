@@ -4,12 +4,12 @@ import { graphqlExpress } from 'apollo-server-express';
 import Parse from 'parse/node';
 import { create as createQuery } from './lib/query';
 
-function buildAdditionalContext(baseContext, additionalContextFactory) {
+function buildAdditionalContext(baseContext, request, additionalContextFactory) {
   if (!additionalContextFactory) {
     return Parse.Promise.as({});
   }
 
-  const r = (typeof additionalContextFactory) === 'function' ? additionalContextFactory(baseContext) :
+  const r = (typeof additionalContextFactory) === 'function' ? additionalContextFactory(baseContext, request) :
     additionalContextFactory;
 
   return r && (typeof r.then === 'function') ? r : Parse.Promise.as(r);
@@ -28,7 +28,7 @@ export function setup({ schema, context }) {
     const baseOps = { schema };
 
     if (!sessionToken) {
-      return buildAdditionalContext(baseContext, context).then(additionalContext => {
+      return buildAdditionalContext(baseContext, request, context).then(additionalContext => {
         return Object.assign({}, baseOps, {
           context: Object.assign({}, baseContext, additionalContext),
         });
@@ -44,7 +44,7 @@ export function setup({ schema, context }) {
         user,
       };
 
-      return buildAdditionalContext(baseContext, context).then(additionalContext => {
+      return buildAdditionalContext(baseContext, request, context).then(additionalContext => {
         return Object.assign(baseOps, {
           context: Object.assign({}, baseContext, additionalContext),
         });
