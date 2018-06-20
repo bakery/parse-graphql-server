@@ -10,27 +10,27 @@ exports.setup = setup;
 
 var _apolloServerExpress = require('apollo-server-express');
 
-var _node = require('parse/node');
-
-var _node2 = _interopRequireDefault(_node);
-
 var _query = require('./lib/query');
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+function buildAdditionalContext(_ref) {
+  var baseContext = _ref.baseContext,
+      request = _ref.request,
+      additionalContextFactory = _ref.additionalContextFactory,
+      Parse = _ref.Parse;
 
-function buildAdditionalContext(baseContext, request, additionalContextFactory) {
   if (!additionalContextFactory) {
-    return _node2.default.Promise.as({});
+    return Parse.Promise.as({});
   }
 
   var r = typeof additionalContextFactory === 'function' ? additionalContextFactory(baseContext, request) : additionalContextFactory;
 
-  return r && typeof r.then === 'function' ? r : _node2.default.Promise.as(r);
+  return r && typeof r.then === 'function' ? r : Parse.Promise.as(r);
 }
 
-function setup(_ref) {
-  var schema = _ref.schema,
-      context = _ref.context;
+function setup(_ref2) {
+  var Parse = _ref2.Parse,
+      schema = _ref2.schema,
+      context = _ref2.context;
 
   var isSchemaLegit = (typeof schema === 'undefined' ? 'undefined' : _typeof(schema)) === 'object';
 
@@ -44,14 +44,14 @@ function setup(_ref) {
     var baseOps = { schema: schema };
 
     if (!sessionToken) {
-      return buildAdditionalContext(baseContext, request, context).then(function (additionalContext) {
+      return buildAdditionalContext({ baseContext: baseContext, request: request, context: context, Parse: Parse }).then(function (additionalContext) {
         return Object.assign({}, baseOps, {
           context: Object.assign({}, baseContext, additionalContext)
         });
       });
     }
 
-    var q = new _node2.default.Query(_node2.default.Session).equalTo('sessionToken', sessionToken);
+    var q = new Parse.Query(Parse.Session).equalTo('sessionToken', sessionToken);
 
     return q.first({ useMasterKey: true }).then(function (session) {
       return session && session.get('user').fetch();
@@ -62,7 +62,7 @@ function setup(_ref) {
         user: user
       };
 
-      return buildAdditionalContext(baseContext, request, context).then(function (additionalContext) {
+      return buildAdditionalContext({ baseContext: baseContext, request: request, context: context, Parse: Parse }).then(function (additionalContext) {
         return Object.assign(baseOps, {
           context: Object.assign({}, baseContext, additionalContext)
         });

@@ -27,11 +27,12 @@ export function setup({ Parse, schema, context }) {
     const baseOps = { schema };
 
     if (!sessionToken) {
-      return buildAdditionalContext({ baseContext, request, context, Parse }).then(additionalContext => {
-        return Object.assign({}, baseOps, {
-          context: Object.assign({}, baseContext, additionalContext),
+      return buildAdditionalContext({ baseContext, request, context, Parse }).then(
+        additionalContext => {
+          return Object.assign({}, baseOps, {
+            context: Object.assign({}, baseContext, additionalContext),
+          });
         });
-      });
     }
 
     const q = new Parse.Query(Parse.Session).equalTo('sessionToken', sessionToken);
@@ -43,11 +44,12 @@ export function setup({ Parse, schema, context }) {
         user,
       };
 
-      return buildAdditionalContext({ baseContext, request, context, Parse }).then(additionalContext => {
-        return Object.assign(baseOps, {
-          context: Object.assign({}, baseContext, additionalContext),
+      return buildAdditionalContext({ baseContext, request, context, Parse }).then(
+        additionalContext => {
+          return Object.assign(baseOps, {
+            context: Object.assign({}, baseContext, additionalContext),
+          });
         });
-      });
     });
   });
 }
