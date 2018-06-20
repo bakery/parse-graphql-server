@@ -23,7 +23,7 @@ export function setup({ Parse, schema, context }) {
 
   return graphqlExpress(request => {
     const sessionToken = request.headers && request.headers.authorization;
-    let baseContext = { Query: createQuery(null) };
+    let baseContext = { Query: createQuery(null, Parse) };
     const baseOps = { schema };
 
     if (!sessionToken) {
@@ -39,7 +39,7 @@ export function setup({ Parse, schema, context }) {
 
     return q.first({ useMasterKey: true }).then(session => session && session.get('user').fetch()).then(user => {
       baseContext = {
-        Query: createQuery(sessionToken),
+        Query: createQuery(sessionToken, Parse),
         sessionToken,
         user,
       };

@@ -1,11 +1,10 @@
 /* eslint import/prefer-default-export: off */
 
-import Parse from 'parse/node';
 import { create as createModel } from './model';
 
 const buildOptions = (options, sessionToken) => Object.assign(options || {}, { sessionToken });
 
-export function create(sessionToken) {
+export function create(sessionToken, Parse) {
   if (!sessionToken) {
     class BasicQuery extends Parse.Query {
       constructor(objectClass) {

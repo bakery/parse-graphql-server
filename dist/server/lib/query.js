@@ -10,13 +10,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 exports.create = create;
 
-var _node = require('parse/node');
-
-var _node2 = _interopRequireDefault(_node);
-
 var _model = require('./model');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -28,7 +22,7 @@ var buildOptions = function buildOptions(options, sessionToken) {
   return Object.assign(options || {}, { sessionToken: sessionToken });
 };
 
-function create(sessionToken) {
+function create(sessionToken, Parse) {
   if (!sessionToken) {
     var BasicQuery = function (_Parse$Query) {
       _inherits(BasicQuery, _Parse$Query);
@@ -52,7 +46,7 @@ function create(sessionToken) {
       }]);
 
       return BasicQuery;
-    }(_node2.default.Query);
+    }(Parse.Query);
 
     return BasicQuery;
   }
@@ -99,7 +93,7 @@ function create(sessionToken) {
     }]);
 
     return Query;
-  }(_node2.default.Query);
+  }(Parse.Query);
 
   return Query;
 }

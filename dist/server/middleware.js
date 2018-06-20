@@ -40,7 +40,7 @@ function setup(_ref2) {
 
   return (0, _apolloServerExpress.graphqlExpress)(function (request) {
     var sessionToken = request.headers && request.headers.authorization;
-    var baseContext = { Query: (0, _query.create)(null) };
+    var baseContext = { Query: (0, _query.create)(null, Parse) };
     var baseOps = { schema: schema };
 
     if (!sessionToken) {
@@ -57,7 +57,7 @@ function setup(_ref2) {
       return session && session.get('user').fetch();
     }).then(function (user) {
       baseContext = {
-        Query: (0, _query.create)(sessionToken),
+        Query: (0, _query.create)(sessionToken, Parse),
         sessionToken: sessionToken,
         user: user
       };
