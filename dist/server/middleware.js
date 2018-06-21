@@ -15,16 +15,20 @@ var _query = require('./lib/query');
 function buildAdditionalContext(_ref) {
   var baseContext = _ref.baseContext,
       request = _ref.request,
-      additionalContextFactory = _ref.additionalContextFactory,
+      context = _ref.context,
       Parse = _ref.Parse;
 
-  if (!additionalContextFactory) {
-    return Parse.Promise.as({});
+  if (!context) {
+    return new Parse.Promise(function (resolve) {
+      resolve({});
+    });
   }
 
-  var r = typeof additionalContextFactory === 'function' ? additionalContextFactory(baseContext, request) : additionalContextFactory;
+  var r = typeof context === 'function' ? context(baseContext, request) : context;
 
-  return r && typeof r.then === 'function' ? r : Parse.Promise.as(r);
+  return r && typeof r.then === 'function' ? r : new Parse.Promise(function (resolve) {
+    return resolve(r);
+  });
 }
 
 function setup(_ref2) {
@@ -36,6 +40,10 @@ function setup(_ref2) {
 
   if (!isSchemaLegit) {
     throw new Error('Invalid schema');
+  }
+
+  if (!Parse) {
+    throw new Error('Parse instance missing');
   }
 
   return (0, _apolloServerExpress.graphqlExpress)(function (request) {

@@ -52,7 +52,7 @@ describe('Server queries', () => {
         create(ParseObject, token) {
           modelCreateSpy(ParseObject, token);
 
-          const Model = function () {
+          const Model = function ModelCtor() {
             modelConstructorStub();
           };
 

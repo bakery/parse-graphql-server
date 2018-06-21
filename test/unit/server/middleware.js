@@ -5,7 +5,7 @@ const sessionToken = 'session-token';
 const schema = {};
 
 const mockParse = (behaviors = {}) => {
-  const Query = function () {};
+  const Query = function QueryCtor() {};
 
   const session = {
     get: () => ({

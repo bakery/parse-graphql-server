@@ -1,9 +1,9 @@
 import { create } from '../../../../src/server/lib/model';
 
-const MyParseObject = function () {};
+const MyParseObject = function MyParseObjectCtor() {};
 MyParseObject.className = 'ParseObject';
 MyParseObject.extend = (ext) => {
-  const C = function () {};
+  const C = function CC() {};
   C.className = 'ParseObject';
   Object.assign(C.prototype, MyParseObject.prototype, ext);
   return C;
