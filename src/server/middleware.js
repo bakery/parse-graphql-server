@@ -3,15 +3,16 @@
 import { graphqlExpress } from 'apollo-server-express';
 import { create as createQuery } from './lib/query';
 
-function buildAdditionalContext({ baseContext, request, additionalContextFactory, Parse }) {
-  if (!additionalContextFactory) {
-    return Parse.Promise.as({});
+function buildAdditionalContext({ baseContext, request, context, Parse }) {
+  if (!context) {
+    return new Parse.Promise(resolve => {
+      resolve({});
+    });
   }
 
-  const r = (typeof additionalContextFactory) === 'function' ? additionalContextFactory(baseContext, request) :
-    additionalContextFactory;
+  const r = (typeof context) === 'function' ? context(baseContext, request) : context;
 
-  return r && (typeof r.then === 'function') ? r : Parse.Promise.as(r);
+  return r && (typeof r.then === 'function') ? r : new Parse.Promise(resolve => resolve(r));
 }
 
 export function setup({ Parse, schema, context }) {
@@ -19,6 +20,10 @@ export function setup({ Parse, schema, context }) {
 
   if (!isSchemaLegit) {
     throw new Error('Invalid schema');
+  }
+
+  if (!Parse) {
+    throw new Error('Parse instance missing');
   }
 
   return graphqlExpress(request => {

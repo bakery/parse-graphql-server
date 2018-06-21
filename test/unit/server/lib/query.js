@@ -1,48 +1,74 @@
 import proxyquire from 'proxyquire';
-import Parse from 'parse/node';
 
 const sessionToken = 'session-token';
 let create;
-let Query;
 
-describe('Server models', () => {
+const mockParse = () => {
+  class Query {
+    create() {
+      return this.foo;
+    }
+
+    count() {
+      return this.foo;
+    }
+
+    find() {
+      return this.foo;
+    }
+
+    first() {
+      return this.foo;
+    }
+
+    get() {
+      return this.foo;
+    }
+  }
+
+  class User {
+
+  }
+
+  return {
+    Query,
+    User,
+  };
+};
+
+
+describe('Server queries', () => {
+  let modelConstructorStub;
   let objectInitializeSpy;
   let modelCreateSpy;
-  let queryCountStub;
-  let queryFindStub;
-  let queryFirstStub;
-  let queryGetStub;
 
   beforeEach(() => {
     objectInitializeSpy = spy();
     modelCreateSpy = spy();
+    modelConstructorStub = stub();
 
     create = proxyquire('../../../../src/server/lib/query', {
       './model': {
         create(ParseObject, token) {
           modelCreateSpy(ParseObject, token);
-          return Parse.Object.extend('MyParseObject', {
+
+          const Model = function () {
+            modelConstructorStub();
+          };
+
+          Model.prototype = {
             initialize: objectInitializeSpy,
-          });
+          };
+
+          return Model;
         },
       },
     }).create;
-
-    queryCountStub = stub(Parse.Query.prototype, 'count', () => 0);
-    queryFindStub = stub(Parse.Query.prototype, 'find', () => []);
-    queryFirstStub = stub(Parse.Query.prototype, 'first', () => {});
-    queryGetStub = stub(Parse.Query.prototype, 'get', () => {});
-
-    Query = create(sessionToken);
   });
 
   afterEach(() => {
     objectInitializeSpy.reset();
     modelCreateSpy.reset();
-    queryCountStub.reset();
-    queryFindStub.reset();
-    queryFirstStub.reset();
-    queryGetStub.reset();
   });
 
   it('exports create method', () => {
@@ -52,7 +78,8 @@ describe('Server models', () => {
 
   describe('create', () => {
     it('returns a transformed Parse.Query with create method if no session token is given', () => {
-      const q = create();
+      const Parse = mockParse();
+      const q = create(null, Parse);
       expect(q).to.respondTo('create');
       expect(q).to.respondTo('find');
       expect(q).to.respondTo('count');
@@ -61,11 +88,14 @@ describe('Server models', () => {
     });
 
     it('returns extended Parse.Query when session token is provided', () => {
-      const q = create(sessionToken);
+      const Parse = mockParse();
+      const q = create(sessionToken, Parse);
       expect(q).to.be.ok;
     });
 
     it('calls create to generate patched Parse.Object', () => {
+      const Parse = mockParse();
+      const Query = create(sessionToken, Parse);
       const q = new Query(Parse.User);
       expect(q).to.be.ok;
       expect(modelCreateSpy).to.have.been.calledWith(Parse.User, sessionToken);
@@ -74,9 +104,28 @@ describe('Server models', () => {
 
   describe('Query returned by create', () => {
     let q;
+    let Query;
+    let queryCountStub;
+    let queryFindStub;
+    let queryFirstStub;
+    let queryGetStub;
 
     beforeEach(() => {
+      const Parse = mockParse();
+      Query = create(sessionToken, Parse);
       q = new Query(Parse.User);
+
+      queryCountStub = stub(Parse.Query.prototype, 'count');
+      queryFindStub = stub(Parse.Query.prototype, 'find');
+      queryFirstStub = stub(Parse.Query.prototype, 'first');
+      queryGetStub = stub(Parse.Query.prototype, 'get');
+    });
+
+    afterEach(() => {
+      queryCountStub.reset();
+      queryFindStub.reset();
+      queryFirstStub.reset();
+      queryGetStub.reset();
     });
 
     it('suports create method', () => {
@@ -86,7 +135,7 @@ describe('Server models', () => {
     it('creates model instance using patched Parse.Object', () => {
       const user = q.create({});
       expect(user).to.be.ok;
-      expect(objectInitializeSpy).to.have.been.calledOnce;
+      expect(modelConstructorStub).to.have.been.calledOnce;
     });
 
     it('calls count with sessionToken option', () => {

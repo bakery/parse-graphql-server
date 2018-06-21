@@ -1,7 +1,22 @@
-import Parse from 'parse/node';
 import { create } from '../../../../src/server/lib/model';
 
-let MyParseObject = Parse.Object.extend('MyParseObject');
+const MyParseObject = function () {};
+MyParseObject.className = 'ParseObject';
+MyParseObject.extend = (ext) => {
+  const C = function () {};
+  C.className = 'ParseObject';
+  Object.assign(C.prototype, MyParseObject.prototype, ext);
+  return C;
+};
+
+MyParseObject.prototype = {
+  save: () => ({}),
+  saveAll: () => ({}),
+  destroy: () => ({}),
+  destroyAll: () => ({}),
+  fetch: () => ({}),
+};
+
 const sessionToken = 'session-token';
 
 describe('Server models', () => {
@@ -27,7 +42,7 @@ describe('Server models', () => {
     it('returns a subclass of Parse.Object when given authentication info', () => {
       const ParseObject = create(MyParseObject, sessionToken);
       expect(ParseObject).to.be.ok;
-      expect(ParseObject.className).to.equal('MyParseObject');
+      expect(ParseObject.className).to.equal('ParseObject');
     });
   });
 
@@ -43,19 +58,12 @@ describe('Server models', () => {
     let po;
 
     beforeEach(() => {
-      saveSpy = spy();
-      saveAllSpy = spy();
-      destroySpy = spy();
-      destroyAllSpy = spy();
-      fetchSpy = spy();
+      saveSpy = spy(MyParseObject.prototype, 'save');
+      saveAllSpy = spy(MyParseObject.prototype, 'saveAll');
+      destroySpy = spy(MyParseObject.prototype, 'destroy');
+      destroyAllSpy = spy(MyParseObject.prototype, 'destroyAll');
+      fetchSpy = spy(MyParseObject.prototype, 'fetch');
 
-      MyParseObject = Parse.Object.extend('MyParseObject', {
-        save: saveSpy,
-        saveAll: saveAllSpy,
-        destroy: destroySpy,
-        destroyAll: destroyAllSpy,
-        fetch: fetchSpy,
-      });
       const ParseObject = create(MyParseObject, sessionToken);
       po = new ParseObject();
     });
